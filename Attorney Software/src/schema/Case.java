@@ -1,5 +1,8 @@
 package schema;
 
-public class Case {
+public class Case{
     int brojSlucaja;
+    int AttorneyId;
+    
+
 }
