@@ -1,2 +1,2 @@
 # Attorney-Legal-Software
-Attorney Managment System
+Attorney Management System
