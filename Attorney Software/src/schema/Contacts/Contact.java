@@ -3,13 +3,14 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
-
+import java.sql.ResultSet;
 import config.db;
 import interfaces.mySQL;
 
-enum TYPE {work, home};
+
 public abstract class Contact{
- static class Address implements mySQL<Address> {
+   public enum TYPE {work, home};
+   public static class Address implements mySQL<Address> {
      int id;
     String street;
     String city;
@@ -18,8 +19,8 @@ public abstract class Contact{
     String country;
     TYPE type;
     int contactId;
-   public Address(String street, String city, String state, int Zip, String country, TYPE type, int contactId){
-    this.id = this.hashCode();
+   public Address(int id, String street, String city, String state, int Zip, String country, TYPE type, int contactId){
+    this.id = id;
 this.street = street;
 this.city = city;
 this.state = state;
@@ -43,7 +44,7 @@ this.contactId = contactId;
            preparedStmt.setString(7, this.getType().name());
            preparedStmt.setInt(8, this.getContactId());
            preparedStmt.execute();
-           connection.close();                      
+                      
         } catch(SQLException e){
             e.printStackTrace();
         }
@@ -63,7 +64,7 @@ this.contactId = contactId;
            preparedStmt.setString(6, this.getType().name());
            preparedStmt.setInt(7, this.getId());
 preparedStmt.execute();
-connection.close();
+
        } catch(SQLException e){
            e.printStackTrace();
        }
@@ -77,10 +78,32 @@ connection.close();
            PreparedStatement preparedStmt = connection.prepareStatement(query);
            preparedStmt.setInt(1, this.getId());
            preparedStmt.execute();
-           connection.close();
                   } catch(SQLException e){
 e.printStackTrace();
                   }
+   }
+
+   public static ArrayList<Address> find(Integer id, String street, String city, String state, Integer Zip, String country, TYPE type, Integer idContact){
+Connection connection = db.getConnection();
+    String idString = id==null?"IS NOT NULL":"="+id.toString();
+String ZipString = Zip == null?"IS NOT NULL":"="+Zip.toString(); 
+String typeString = type == null?"IS NOT NULL":"="+type.name();
+String idContacString = idContact==null?"IS NOT NULL":"="+idContact.toString();
+String query = "SELECT * FROM address"+ 
+"WHERE(id "+idString+" AND street LIKE '%"+street+"%' AND city LIKE '%"+state+"%' AND state LIKE '%"+state+"%' AND Zip "+ZipString+" AND country LIKE '%"+country+"%' AND type "+typeString+" idcontact "+idContacString+")";
+ArrayList<Address> result = new ArrayList<Address>();
+try{
+    ResultSet rs = connection.prepareStatement(query).executeQuery();
+    
+    while(rs.next()){
+        result.add(new Address(rs.getInt("id"), rs.getString("street"), rs.getString("city"), rs.getString("state"), rs.getInt("Zip"), rs.getString("country"), TYPE.valueOf(rs.getString("type")), rs.getInt("idcontact")));
+        
+    }
+    System.out.println(result.size());
+} catch(SQLException e){
+    e.printStackTrace();
+}
+return result;
    }
    
 
@@ -102,13 +125,13 @@ e.printStackTrace();
 
 }
 
-static class Phone implements mySQL<Phone>{
+public static class Phone implements mySQL<Phone>{
     int id;
     String phone;
     TYPE type;
     int contactId;
-    public Phone(String phone, TYPE type, int contactId){
-        this.id = this.hashCode();
+    public Phone(int id, String phone, TYPE type, int contactId){
+        this.id = id;
         this.phone = phone;
         this.type = type;
         this.contactId = contactId;
@@ -124,7 +147,6 @@ static class Phone implements mySQL<Phone>{
             preparedStmt.setString(3, this.getType().name());
             preparedStmt.setInt(4, this.getContactId());
             preparedStmt.execute();
-            connection.close();
         } catch(SQLException e){
             e.printStackTrace();
         }
@@ -140,7 +162,6 @@ static class Phone implements mySQL<Phone>{
             preparedStmt.setString(2, this.getType().name());
             preparedStmt.setInt(3, this.getId());
             preparedStmt.execute();
-            connection.close();
         } catch(SQLException e){
             e.printStackTrace();
         }
@@ -153,11 +174,30 @@ static class Phone implements mySQL<Phone>{
             PreparedStatement preparedStmt = connection.prepareStatement(query);
             preparedStmt.setInt(1, this.getId());
             preparedStmt.execute();
-            connection.close();
         } catch(SQLException e){
             e.printStackTrace();
         }
     }
+
+   public static ArrayList<Phone> find(Integer id, String number, Integer idcontact, TYPE type){
+Connection connection = db.getConnection();
+String idString = id == null?"IS NOT NULL":"="+id.toString();
+String idContactString = idcontact == null?"IS NOT NULL":"="+idcontact.toString();
+String typeString = type == null ?"IS NOT NULL":"="+type.name();
+String query = "SELECT * FROM phone WHERE (id "+idString+" AND number LIKE '%"+number+"%' AND type "+typeString+" AND idcontact "+idContactString+")";
+ArrayList<Phone> result = new ArrayList<Phone>();
+try{
+    ResultSet rs = connection.prepareStatement(query).executeQuery();
+    while(rs.next()){
+        result.add(new Phone(rs.getInt("id"), rs.getString("number"),TYPE.valueOf(rs.getString("type")), rs.getInt("idcontact")));
+    }
+    System.out.println(result.size());
+} catch(SQLException e){
+    e.printStackTrace();
+}
+return result;
+   }
+
     public int getId(){return this.id;}
     public String getPhone(){return this.phone;}
     public TYPE getType(){return this.type;}
@@ -167,10 +207,16 @@ static class Phone implements mySQL<Phone>{
     public void setType(TYPE type){this.type = type;}
 }
 
-static class Email implements mySQL<Email>{
+public static class Email implements mySQL<Email>{
     int id;
 String email;
 int contactid;
+public Email(int id,String email, int contactid){
+    this.id = id;
+    this.email = email;
+    this.contactid = contactid;
+
+}
 @Override
 public Email save() {
     Connection connection = db.getConnection();
@@ -181,7 +227,6 @@ public Email save() {
         preparedStmt.setString(2, this.getEmail());
         preparedStmt.setInt(3, this.getContactId());
         preparedStmt.execute();
-        connection.close();
     } catch(SQLException e){
         e.printStackTrace();
     }
@@ -196,7 +241,6 @@ public void update() {
         preparedStmt.setString(1, this.getEmail());
         preparedStmt.setInt(2, this.getId());
         preparedStmt.execute();
-        connection.close();
     } catch(SQLException e){
         e.printStackTrace();
     }
@@ -209,10 +253,27 @@ public void delete() {
      PreparedStatement preparedStmt = connection.prepareStatement(query);
      preparedStmt.setInt(1, this.getId());
      preparedStmt.execute();
-     connection.close();
  } catch(SQLException e){
      e.printStackTrace();
  }
+}
+public static ArrayList<Email> find(Integer id, String mail, Integer idcontact){
+    Connection connection = db.getConnection();
+    String idString = id==null?"IS NOT NULL":"="+id.toString();
+    String idContactString = idcontact==null?"IS NOT NULL":"="+idcontact.toString();
+    String query = "SELECT * FROM WHERE (id "+idString+" AND mail LIKE '%"+mail+"%' AND idcontact "+idContactString+")";
+    ArrayList<Email> result = new ArrayList<Email>();
+    try{
+        ResultSet rs = connection.prepareStatement(query).executeQuery();
+        while(rs.next()){
+            result.add(new Email(rs.getInt("id"), rs.getString("mail"), rs.getInt("idcontact")));
+        }
+        System.out.println(result.size());
+
+    } catch(SQLException e){
+        e.printStackTrace();
+    }
+    return result;
 }
 
 public int getId(){return this.id;}
@@ -225,10 +286,14 @@ public void setEmail(String email){this.email = email;}
     ArrayList<Email> emails;
     ArrayList<Phone> phones;
    ArrayList<Address> addresses;
-    
-    public Contact(ArrayList<Email> emails, ArrayList<Phone> phones, ArrayList<Address> addresses){
-this.emails = emails;
-this.phones = phones;
-this.addresses = addresses;            
-    }
+
+   Contact(){
+       emails = new ArrayList<Email>();
+       phones = new ArrayList<Phone>();
+       addresses = new ArrayList<Address>();
+   }
+
+   public ArrayList<Address> getAddresses(){return this.addresses;}
+public ArrayList<Phone> getPhones(){return this.phones;}
+public ArrayList<Email> getEmails(){return this.emails;}
 }

@@ -3,6 +3,7 @@ package schema;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
@@ -18,7 +19,7 @@ public final class Attorney implements mySQL<Attorney> {
     String workExperience;
     String languages;
 
-    public Attorney(String firstName, String lastName, int yearBirth, String education, String workExperience,
+    public Attorney(int id, String firstName, String lastName, int yearBirth, String education, String workExperience,
     String languages) {
         this.firstName = firstName;
         this.lastName = lastName;
@@ -26,7 +27,7 @@ public final class Attorney implements mySQL<Attorney> {
         this.education = education;
         this.workExperience = workExperience;
         this.languages = languages;
-        this.id = this.hashCode();
+        this.id = id;
        }
 
     public Attorney() {
@@ -105,10 +106,26 @@ try{
     e.printStackTrace();
 }
 }
- public static  ArrayList<Attorney> find(String firstName, String lastName, int yearBirth, String education, String workExperience, String languages){
+ public static  ArrayList<Attorney> find(Integer id, String firstName, String lastName, Integer yearBirth, String education, String workExperience, String languages){
 
 Connection connection = db.getConnection();
-String query = ""
+String idString = id == null?"IS NOT NULL":"="+id.toString();
+String yearBirthString = yearBirth == null?"IS NOT NULL":"="+yearBirth.toString();
+String query = "SELECT * FROM attorney "+ 
+"WHERE (id "+idString+" AND firstName LIKE '%"+firstName+"%' AND lastName LIKE '%"+lastName+"%' AND yearBirth "+yearBirthString+" AND education LIKE '%"+education+"%' AND workExperience LIKE '%"+workExperience+"%' AND languages LIKE '%" + languages + "%')";
+ArrayList<Attorney> result = new ArrayList<Attorney>();
+try{
+ResultSet rs = connection.prepareStatement(query).executeQuery();
+while(rs.next()){
+result.add(new Attorney(rs.getInt("id"), rs.getString("firstName"), rs.getString("lastName"), rs.getInt("yearBirth"),
+ rs.getString("education"), rs.getString("workExperience"), rs.getString("languages")));
+}
+System.out.println(result.size());
+} catch(SQLException e){
+    e.printStackTrace();
+}
+
+return result;
 }
 
 
