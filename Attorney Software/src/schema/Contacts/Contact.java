@@ -29,6 +29,18 @@ this.country = country;
 this.type = type;
 this.contactId = contactId;
    }
+
+   public Address(String street, String city, String state, int Zip, String country, TYPE type, int contactId){
+    this.id = this.hashCode();
+this.street = street;
+this.city = city;
+this.state = state;
+this.Zip = Zip;
+this.country = country;
+this.type = type;
+this.contactId = contactId;
+   }
+
    @Override
    public Address save() {
        Connection connection = db.getConnection();
@@ -136,6 +148,14 @@ public static class Phone implements mySQL<Phone>{
         this.type = type;
         this.contactId = contactId;
     }
+    public Phone(String phone, TYPE type, int contactId){
+        this.id = this.hashCode();
+        this.phone = phone;
+        this.type = type;
+        this.contactId = contactId;
+    }
+
+
     @Override
     public Phone save() {
         Connection connection = db.getConnection();
@@ -217,6 +237,14 @@ public Email(int id,String email, int contactid){
     this.contactid = contactid;
 
 }
+
+public Email(String email, int contactid){
+    this.id = this.hashCode();
+    this.email = email;
+    this.contactid = contactid;
+
+}
+
 @Override
 public Email save() {
     Connection connection = db.getConnection();
@@ -292,7 +320,11 @@ public void setEmail(String email){this.email = email;}
        phones = new ArrayList<Phone>();
        addresses = new ArrayList<Address>();
    }
-
+   Contact(ArrayList<Address> addresses, ArrayList<Phone> phones, ArrayList<Email> emails){
+       this.addresses = addresses;
+       this.phones = phones;
+       this.emails = emails;
+   }
    public ArrayList<Address> getAddresses(){return this.addresses;}
 public ArrayList<Phone> getPhones(){return this.phones;}
 public ArrayList<Email> getEmails(){return this.emails;}

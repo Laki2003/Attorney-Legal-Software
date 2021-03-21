@@ -30,6 +30,18 @@ public final class Attorney implements mySQL<Attorney> {
         this.id = id;
        }
 
+       public Attorney(String firstName, String lastName, int yearBirth, String education, String workExperience,
+       String languages) {
+           this.firstName = firstName;
+           this.lastName = lastName;
+           this.yearBirth = yearBirth;
+           this.education = education;
+           this.workExperience = workExperience;
+           this.languages = languages;
+           this.id = this.hashCode();
+          }
+   
+
     public Attorney() {
 
         

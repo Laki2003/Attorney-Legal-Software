@@ -4,8 +4,9 @@ import interfaces.mySQL;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
-
+import java.util.ArrayList;
 
 import config.db;
 
@@ -20,8 +21,18 @@ public class Company extends Contact implements mySQL<Company>{
 this.name = name;
 this.vrstakompanije = vrstakompanije;
 this.customer = customer;
-
+this.id = this.hashCode();
     }
+    public Company(int id,String name, VRSTAKOMPANIJE vrstakompanije, boolean customer, ArrayList<Address> addresses, ArrayList<Phone> phones, ArrayList<Email> emails){
+      this.name = name;
+      this.vrstakompanije = vrstakompanije;
+      this.customer = customer;
+      this.id = id;
+      this.addresses = addresses;
+      this.phones = phones;
+      this.emails = emails;
+          }
+          
 
     @Override
     public Company save() {
@@ -93,6 +104,51 @@ this.customer = customer;
              e.printStackTrace();
          }
 
+    }
+    public static ArrayList<Company> find(Integer id, String name, VRSTAKOMPANIJE vrstaKompanije, Boolean customer, String addressString, String phoneString, String emailString){
+Connection connection = db.getConnection();
+String idString = id == null?"IS NOT NULL":"="+id.toString();
+String vrstaKompanijeString = vrstaKompanije == null?"IS NOT NULL":"="+vrstaKompanije.name();
+String customerString = customer == null?"IS NOT NULL":"="+customer.toString();
+String query = "SELECT company.id,company.name, company.vrstaKompanije, company.customer,GROUP_CONCAT(DISTINCT CONCAT_WS(',', address.id, address.street, address.city, address.state, address.Zip, address.country, address.type) SEPARATOR ';') AS addresses,"+
+" GROUP_CONCAT(DISTINCT CONCAT_WS(',', phone.id, phone.number, phone.type) SEPARATOR ';') AS phones, GROUP_CONCAT(DISTINCT CONCAT_WS(',', email.id, email.mail) SEPARATOR ';') AS emails FROM person LEFT JOIN address ON company.id = address.idcontact"+
+" LEFT JOIN phone ON company.id = phone.idcontact LEFT JOIN email ON company.id = email.idcontact WHERE(company.id "
++idString+" company LIKE '%"+name+"%' AND company.vrstaKompanije "+vrstaKompanijeString+" AND company.customer "+customerString+")" + " GROUP BY company.id HAVING addresses LIKE '%"+addressString+"%' AND phones LIKE '%"+phoneString+"%' AND emails LIKE '%"+emailString+"%'";
+ArrayList<Company> result = new ArrayList<Company>();
+try{
+   ResultSet rs = connection.prepareStatement(query).executeQuery();
+   while(rs.next()){
+   ArrayList<Email> emails = new ArrayList<Email>();
+   ArrayList<Phone> phones = new ArrayList<Phone>();
+   ArrayList<Address> addresses = new ArrayList<Address>();
+   String[] objects = rs.getString("emails").split(";");
+ 
+   for(int i = 0;i<objects.length;i++){
+      String[] fields = objects[i].split(",");
+      if(fields.length > 1)
+      emails.add(new Email(Integer.parseInt(fields[0]), fields[1], rs.getInt("company.id")));
+   }
+   objects = rs.getString("phones").split(";");
+  
+   for(int i = 0;i<objects.length;i++){
+      String[] fields = objects[i].split(",");
+      if(fields.length> 1)
+      phones.add(new Phone(Integer.parseInt(fields[0]), fields[1], TYPE.valueOf(fields[2]), rs.getInt("company.id")));
+   }
+   objects = rs.getString("addresses").split(";");
+    for(int i = 0;i<objects.length;i++){
+      String[] fields = objects[i].split(",");
+      if(fields.length>1)
+      addresses.add(new Address(Integer.parseInt(fields[0]), fields[1], fields[2], fields[3], Integer.parseInt(fields[4]), fields[5], TYPE.valueOf(fields[6]), rs.getInt("company.id")));
+   }
+   result.add(new Company(rs.getInt("company.id"), rs.getString("company.name"), VRSTAKOMPANIJE.valueOf(rs.getString("company.vrstaKompanije")), rs.getBoolean("company.customer"), addresses, phones, emails));
+   }
+} catch(SQLException e){
+   e.printStackTrace();
+}
+if(result.size() == 0)
+return null;
+return result; 
     }
 
     public int getId(){return this.id;}
