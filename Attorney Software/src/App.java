@@ -6,13 +6,15 @@ import schema.Attorney;
 import schema.Contacts.Company;
 import schema.Contacts.Contact;
 import java.util.ArrayList;
+
+import GUI.gui;
 public class App {
   
 
  
 
     public static void main(String[] args) throws Exception {
-        Company c = new Company("The Half", VRSTAKOMPANIJE.doo, false);
+     /*   Company c = new Company("The Half", VRSTAKOMPANIJE.doo, false);
         c.getAddresses();
 Person p = new Person("Lazar", "Polovina",TITLE.CEO, true);
 Person q = new Person("Milan", "Polovina", TITLE.director, true);
@@ -35,6 +37,8 @@ a.save();
 a.setLastName("Half");
 a.update();
 Attorney.find(null, "L", "H",null, "", "", "");
-a.delete();
+a.delete();*/
+gui g = new gui();
+
     }
 }
