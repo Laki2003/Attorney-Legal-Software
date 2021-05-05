@@ -9,15 +9,16 @@ public class db {
 
    private static Connection connection = null;
    static{
+
     try{
-        connection = DriverManager.getConnection(url, username, password);
+                connection = DriverManager.getConnection(url, username, password);
    if(connection !=null){
        System.out.println("Connected to the database");
    }
     } catch (SQLException ex){
         System.out.println("An error occured. Maybe user/password is invalid");
         ex.printStackTrace();
-    }
+    } 
    }
    public static Connection getConnection(){
        return connection;

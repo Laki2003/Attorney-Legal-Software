@@ -1,17 +1,20 @@
 package schema;
 
 
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Random;
+
+import com.mysql.cj.xdevapi.Statement;
 
 import config.db;
 import interfaces.mySQL;
-
 public final class Attorney implements mySQL<Attorney> {
-    int id;
+    String id;
     String firstName;
     String lastName;
     int yearBirth;
@@ -19,7 +22,15 @@ public final class Attorney implements mySQL<Attorney> {
     String workExperience;
     String languages;
 
-    public Attorney(int id, String firstName, String lastName, int yearBirth, String education, String workExperience,
+    public String ObjectId() {
+        byte[] array = new byte[7];
+        new Random().nextBytes(array);
+        return Integer.toHexString(this.getFirstName().hashCode())+Integer.toHexString(this.getLastName().hashCode())+Integer.toHexString(this.getYearBirth())
+         +Integer.toHexString(this.getEducation().hashCode())+Integer.toHexString(this.getLanguages().hashCode())+Integer.toHexString(this.getWorkExperience().hashCode())
+         +Integer.toHexString(new String(array).hashCode());
+       }
+
+    public Attorney(String id, String firstName, String lastName, int yearBirth, String education, String workExperience,
     String languages) {
         this.firstName = firstName;
         this.lastName = lastName;
@@ -38,22 +49,22 @@ public final class Attorney implements mySQL<Attorney> {
            this.education = education;
            this.workExperience = workExperience;
            this.languages = languages;
-           this.id = this.hashCode();
+           this.id = this.ObjectId();
           }
-   
-
+ 
+ 
     public Attorney() {
 
         
  
     
-        this.firstName = "Lazaar";
-        this.lastName = "Polovissna";
+        this.firstName = "lazaar";
+        this.lastName = "Polovsena";
         this.yearBirth = 1962;
         this.education = "Pravni fakultet u Novom Sadu\n 1962-1965\n Pravni fakultet u Beogradu\n 1961-1965";
         this.workExperience = "Pravni fakultet u Novom Sadu\n 1962-1965\n Pravni fakultet u Beogradu\n 1961-1965";
         this.languages = "engleski, francuski, nemacki";
-        this.id = this.hashCode();
+        this.id = this.ObjectId();
     }
  
 
@@ -63,18 +74,23 @@ public final class Attorney implements mySQL<Attorney> {
 
         Connection connection = db.getConnection();
         String query = "insert into attorney (id, firstName, lastName, yearBirth, education, workExperience, languages)"
-                + " values(?,?,?,?,?,?,?)";
+                + " values(?,?,?,?,?,?,?) on duplicate key update id=?";
         try {
-            PreparedStatement preparedStmt = connection.prepareStatement(query);
-            preparedStmt.setInt(1, this.hashCode());
+            PreparedStatement preparedStmt = connection.prepareStatement(query, PreparedStatement.RETURN_GENERATED_KEYS);
+            preparedStmt.setString(1, this.getId());
             preparedStmt.setString(2, this.getFirstName());
             preparedStmt.setString(3, this.getLastName());
             preparedStmt.setInt(4, this.getYearBirth());
             preparedStmt.setString(5, this.getEducation());
             preparedStmt.setString(6, this.getWorkExperience());
            preparedStmt.setString(7, this.getLanguages());
-                     preparedStmt.execute();
- 
+           preparedStmt.setString(8, this.ObjectId());
+              preparedStmt.executeUpdate();
+              ResultSet rs = preparedStmt.getGeneratedKeys();
+              if(rs.next()){
+                  this.id = rs.getString(1);
+              }
+             rs.close();
         } catch (SQLException e) {
                      e.printStackTrace();
         }
@@ -90,7 +106,7 @@ String query = "DELETE FROM attorney WHERE id = ?";
 PreparedStatement preparedStmt;
 try {
     preparedStmt = connection.prepareStatement(query);
-    preparedStmt.setInt(1, this.id);
+    preparedStmt.setString(1, this.id);
     preparedStmt.execute();
 
 } catch (SQLException e) {
@@ -111,14 +127,14 @@ try{
     preparedStatement.setString(4, this.getEducation());
     preparedStatement.setString(5, this.getWorkExperience());
     preparedStatement.setString(6, this.getLanguages());
-    preparedStatement.setInt(7, this.id);
+    preparedStatement.setString(7, this.getId());
     preparedStatement.execute();
  
 } catch(SQLException e){
     e.printStackTrace();
 }
 }
- public static  ArrayList<Attorney> find(Integer id, String firstName, String lastName, Integer yearBirth, String education, String workExperience, String languages){
+ public static  ArrayList<Attorney> find(String id, String firstName, String lastName, Integer yearBirth, String education, String workExperience, String languages){
 
 Connection connection = db.getConnection();
 String idString = id == null?"IS NOT NULL":"="+id.toString();
@@ -129,7 +145,7 @@ ArrayList<Attorney> result = new ArrayList<Attorney>();
 try{
 ResultSet rs = connection.prepareStatement(query).executeQuery();
 while(rs.next()){
-result.add(new Attorney(rs.getInt("id"), rs.getString("firstName"), rs.getString("lastName"), rs.getInt("yearBirth"),
+result.add(new Attorney(rs.getString("id"), rs.getString("firstName"), rs.getString("lastName"), rs.getInt("yearBirth"),
  rs.getString("education"), rs.getString("workExperience"), rs.getString("languages")));
 }
 System.out.println(result.size());
@@ -142,7 +158,7 @@ return result;
 
 
 
-public int getId(){return this.id;}
+public String getId(){return this.id;}
 public String getFirstName() {return this.firstName;}
 public String getLastName() {return this.lastName;}
 public int getYearBirth() {return this.yearBirth;}
