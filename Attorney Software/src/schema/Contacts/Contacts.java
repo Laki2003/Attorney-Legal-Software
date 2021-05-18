@@ -7,8 +7,11 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Random;
 
+import javax.swing.JTable;
+
 import config.db;
 import interfaces.mySQL;
+import net.proteanit.sql.DbUtils;
 
 
 public class Contacts extends Contact implements mySQL<Contacts>{
@@ -164,9 +167,9 @@ Contacts person = null;
 
 return person;
 }
-public static ArrayList<Contacts> find(String id, String name, TITLE title, Boolean customer, TYPEC type, String addressString, String phoneString, String emailString){
+public static ArrayList<Contacts> find(JTable table, String id, String name, TITLE title, Boolean customer, TYPEC type, String addressString, String phoneString, String emailString){
 Connection connection = db.getConnection();
-   String idString = id==null?"IS NOT NULL":"="+id.toString();
+   String idString = id==null?"IS NOT NULL":"= '"+id.toString() + "'";
    String titleString = title==null?"IS NOT NULL":"="+title.name();
    String typeString = title==null?"IS NOT NULL":"="+type.name();
 String customerString = customer == null?"IS NOT NULL":"="+customer.toString();
@@ -176,7 +179,10 @@ String query = "SELECT contacts.id, contacts.name, contacts.title, contacts.cust
 +idString+" AND contacts.name LIKE '%"+name+"%' AND contacts.title "+titleString+" AND contacts.customer "+customerString+" and contacts.type "+typeString+")" + " GROUP BY contacts.id HAVING addresses LIKE '%"+addressString+"%' AND phones LIKE '%"+phoneString+"%' AND emails LIKE '%"+emailString+"%'";
 ArrayList<Contacts> result = new ArrayList<Contacts>();
 try{
-   ResultSet rs = connection.prepareStatement(query).executeQuery();
+  ResultSet rs = connection.prepareStatement(query).executeQuery();
+  if(table!=null)
+  table.setModel(DbUtils.resultSetToTableModel(rs));
+  else{
    while(rs.next()){
    ArrayList<Email> emails = new ArrayList<Email>();
    ArrayList<Phone> phones = new ArrayList<Phone>();
@@ -203,6 +209,7 @@ try{
    }
    result.add(new Contacts(rs.getString("contacts.id"),rs.getString("contacts.name"), TITLE.valueOf(rs.getString("contacts.title")), rs.getBoolean("contacts.customer"), TYPEC.valueOf(rs.getString("contacts.type")), addresses, phones, emails));
    }
+}
 } catch(SQLException e){
    e.printStackTrace();
 }

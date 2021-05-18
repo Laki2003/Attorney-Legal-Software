@@ -9,10 +9,11 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Random;
 
-import com.mysql.cj.xdevapi.Statement;
+import javax.swing.JTable;
 
 import config.db;
 import interfaces.mySQL;
+import net.proteanit.sql.DbUtils;
 public final class Attorney implements mySQL<Attorney> {
     String id;
     String firstName;
@@ -134,21 +135,23 @@ try{
     e.printStackTrace();
 }
 }
- public static  ArrayList<Attorney> find(String id, String firstName, String lastName, Integer yearBirth, String education, String workExperience, String languages){
+ public static  ArrayList<Attorney> find(JTable table, String id, String string){
 
 Connection connection = db.getConnection();
-String idString = id == null?"IS NOT NULL":"="+id.toString();
-String yearBirthString = yearBirth == null?"IS NOT NULL":"="+yearBirth.toString();
+String idString = id == null?"IS NOT NULL":"= '"+id.toString() + "'";
 String query = "SELECT * FROM attorney "+ 
-"WHERE (id "+idString+" AND firstName LIKE '%"+firstName+"%' AND lastName LIKE '%"+lastName+"%' AND yearBirth "+yearBirthString+" AND education LIKE '%"+education+"%' AND workExperience LIKE '%"+workExperience+"%' AND languages LIKE '%" + languages + "%')";
+"WHERE (id "+idString+") GROUP BY id HAVING CONCAT_WS(firstName, lastName, education, workExperience, languages) LIKE '%"+string+"%'";
 ArrayList<Attorney> result = new ArrayList<Attorney>();
 try{
-ResultSet rs = connection.prepareStatement(query).executeQuery();
+ ResultSet rs = connection.prepareStatement(query).executeQuery();
+ if(table!=null)
+ table.setModel(DbUtils.resultSetToTableModel(rs));
+ else{
 while(rs.next()){
 result.add(new Attorney(rs.getString("id"), rs.getString("firstName"), rs.getString("lastName"), rs.getInt("yearBirth"),
  rs.getString("education"), rs.getString("workExperience"), rs.getString("languages")));
 }
-System.out.println(result.size());
+ }
 } catch(SQLException e){
     e.printStackTrace();
 }

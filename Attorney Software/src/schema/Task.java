@@ -9,18 +9,21 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Random;
 
+import javax.swing.JTable;
+
 import config.db;
 import interfaces.mySQL;
+import net.proteanit.sql.DbUtils;
 
 public class Task implements mySQL<Task>{
-    enum PRIORITY{normal, important}
-    enum STATUS {pending, finished}
+   public enum PRIORITY{normal, important}
+   public enum STATUST {pending, finished}
     String id;
     String taskName;
     String description;
     Case case1;
     PRIORITY priority;
-    STATUS status;
+    STATUST status;
     Date date;
     @Override
     public String ObjectId() {
@@ -30,7 +33,7 @@ public class Task implements mySQL<Task>{
         + Integer.toHexString(this.getPriority().name().hashCode())+Integer.toHexString(this.getStatus().name().hashCode())+Integer.toHexString(this.getDate().toString().hashCode())
         +Integer.toHexString(new String(array, Charset.forName("UTF-8")).hashCode());
     }
-    public Task(String id, String taskName, String description, Case case1, PRIORITY priority, STATUS status, Date date){
+    public Task(String id, String taskName, String description, Case case1, PRIORITY priority, STATUST status, Date date){
         this.id = id;
         this.taskName = taskName;
         this.description = description;
@@ -39,7 +42,7 @@ public class Task implements mySQL<Task>{
         this.status = status;
         this.date = date;
     }
-    public Task(String taskName, String description, Case case1, PRIORITY priority, STATUS status, Date date){
+    public Task(String taskName, String description, Case case1, PRIORITY priority, STATUST status, Date date){
           this.taskName = taskName;
         this.description = description;
         this.case1 = case1;
@@ -113,7 +116,7 @@ ArrayList<Task> result = new ArrayList<Task>();
     try{
     ResultSet rs = connection.prepareStatement(query).executeQuery();
  while(rs.next()){
-     result.add(new Task(rs.getString("id"), rs.getString("taskName"), rs.getString("description"), null, PRIORITY.valueOf(rs.getString("priority")), STATUS.valueOf(rs.getString("status")), rs.getDate("date")));
+     result.add(new Task(rs.getString("id"), rs.getString("taskName"), rs.getString("description"), null, PRIORITY.valueOf(rs.getString("priority")), STATUST.valueOf(rs.getString("status")), rs.getDate("date")));
       } 
     }catch(SQLException e){
         e.printStackTrace();
@@ -121,9 +124,28 @@ ArrayList<Task> result = new ArrayList<Task>();
         return result;
 }
 
-    public static ArrayList<Task> find(){
+    public static ArrayList<Task> find(JTable table, String search, PRIORITY priority, STATUST status){
 Connection connection = db.getConnection();
-String query = "SELECT "
+String priorityString = priority==null?"IS NOT NULL":"="+priority.name();
+String statusString = status == null?"IS NOT NULL":"="+status.toString();
+String query = "Select id, taskName, description, caseId, priority, status, date FROM tasks LEFT JOIN cases ON tasks.caseId = cases.id "+ 
+"where(priority "+priorityString + " AND status "+statusString+" ) GROUP BY tasks.id "+
+ "HAVING CONCAT_WS(taskName, description, ccase) LIKE '%" + search +"%'";
+ArrayList<Task> tasks = new ArrayList<Task>();
+ try{
+     ResultSet rs = connection.prepareStatement(query).executeQuery();
+     if(table!=null)
+     table.setModel(DbUtils.resultSetToTableModel(rs));
+     else{
+     while(rs.next()){
+        // tasks.add(new Task(rs.getString("id"), rs.getString("taskName"), rs.getString("description"), new Case(rs.getString("")), PRIORITY.valueOf(rs.getString("priority")), STATUST.valueOf(rs.getString("status")), ))
+
+     }
+    }
+ }catch(SQLException e){
+     e.printStackTrace();
+ }
+ return tasks;
     }
 
     public String getId(){return this.id;}
@@ -131,13 +153,13 @@ String query = "SELECT "
     public String getDescription(){return this.description;}
     public Case getCase(){return this.case1;}
     public PRIORITY getPriority(){return this.priority;}
-    public STATUS getStatus(){return this.status;}
+    public STATUST getStatus(){return this.status;}
     public Date getDate(){return this.date;}
 
     public void setTaskName(String taskName){this.taskName = taskName;}
     public void setDescription(String description){this.description = description;}
     public void setCase(Case case1){this.case1 = case1;}
     public void setPriority(PRIORITY priority){this.priority = priority;}
-    public void setStatus(STATUS status){this.status = status;}
+    public void setStatus(STATUST status){this.status = status;}
     public void setDate(Date date){this.date = date;}
 }

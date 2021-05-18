@@ -2,17 +2,19 @@ package schema;
 
 import config.db;
 import interfaces.mySQL;
+import net.proteanit.sql.DbUtils;
 import schema.Contacts.Contacts;
 import schema.Contacts.Contacts.TITLE;
 
-import java.nio.charset.Charset;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Random;
+
+import javax.swing.JTable;
+
 
 
 
@@ -31,13 +33,9 @@ STATUS status;
 PERMISSION permission;
 @Override
 public String ObjectId() {
-    byte[] array = new byte[7];
-    new Random().nextBytes(new byte[7]);
-    return Integer.toHexString(this.getDescription().hashCode())+Integer.toHexString(this.getAttorney().getId().hashCode()) + Integer.toHexString(this.getCustomer().getId().hashCode())+
-    Integer.toHexString(this.getAgainst().getId().hashCode()) + Integer.toHexString(this.getOpenDate().toString().hashCode())+Integer.toHexString(this.getCloseDate().toString().hashCode())+
-    Integer.toHexString(this.getStatus().name().hashCode())+Integer.toHexString(this.getPermission().name().hashCode()) + Integer.toHexString(new String(array, Charset.forName("UTF-8")).hashCode());
+  return "";
 }
-public Case(String id, String description, Attorney attorney, Contacts customer, Contacts against, ArrayList<Contacts> contacts, Date openDate, Date closeDate, STATUS status, PERMISSION permission){
+public Case(String id,  String description, Attorney attorney, Contacts customer, Contacts against, ArrayList<Contacts> contacts, Date openDate, Date closeDate, STATUS status, PERMISSION permission){
 this.id = id;
 this.description = description;
 this.attorney = attorney;
@@ -50,18 +48,7 @@ this.status = status;
 this.permission = permission;
 
 }
-public Case(String description, Attorney attorney, Contacts customer, Contacts against, ArrayList<Contacts> contacts, Date openDate, Date closeDate, STATUS status, PERMISSION permission){
-       this.description = description;
-    this.attorney = attorney;
-    this.customer = customer;
-    this.against = against;
-    this.contacts = contacts;
-    this.openDate = openDate;
-    this.closeDate = closeDate;
-    this.status = status;
-    this.permission = permission;
-    this.id = this.ObjectId(); 
-    }
+
 @Override
 public Case save() {
     String personsIds = "";
@@ -138,19 +125,18 @@ public void delete() {
 }
 
 
-public static ArrayList<Case> findByContactId(String id){
-    String query = "SELECT id, openDate, closeDate, customerId, againstId "
-}
-
-public static ArrayList<Case> find(String search){
+public static ArrayList<Case> find(JTable table, String id, String search){
 Connection connection = db.getConnection();
 String query = "SELECT cases.id, cases.description, cases.openDate, cases.closeDate, cases.permission, CONCAT_WS(',',attorney.id,attorney.firstName, attorney.lastName) AS attorney, CONCAT_WS(',',customer.id,customer.name) AS customer, CONCAT_WS(',', against.id, against.name) AS against,"+ 
 "GROUP_CONCAT(DISTINCT CONCAT_WS(',',contacts.id, contacts.name, contacts.title) SEPARATOR ';') AS contacts  FROM cases "+ 
 "left join attorney on cases.attorneyId = attorney.id "+
- "left join contacts customer  on cases.customerId = customer.id left join contacts against on cases.againstId = against.id left join contacts  on cases.contactsIds like concat('%',contacts.id,'%') GROUP BY cases.id having concat_ws(',', cases.description, cases.id, cases.openDate, cases.closeDate, cases.permission, attorney, customer, against, contacts) LIKE '%"+search+"%'";
+ "left join contacts customer  on cases.customerId = customer.id left join contacts against on cases.againstId = against.id left join contacts  on cases.contactsIds like concat('%',contacts.id,'%') WHERE(cases.id "+id == null?"IS NOT NULL":"= '"+id+"') GROUP BY cases.id having concat_ws(',', cases.description, cases.id, cases.openDate, cases.closeDate, cases.permission, attorney, customer, against, contacts) LIKE '%"+search+"%'";
 ArrayList<Case> cases = new ArrayList<Case>();
 try{
-ResultSet rs = connection.prepareStatement(query).executeQuery();
+ ResultSet rs = connection.prepareStatement(query).executeQuery();
+ if(table!=null)
+ table.setModel(DbUtils.resultSetToTableModel(rs));
+ else{
 while(rs.next()){
     ArrayList<Contacts> contacts = new ArrayList<Contacts>();
     String[] objects = rs.getString("contacts").split(";");
@@ -166,6 +152,7 @@ while(rs.next()){
     Contacts against = new Contacts(object[0], object[1], TITLE.valueOf(object[2]), null, null, null, null, null);
     cases.add(new Case(rs.getString("cases.id"), rs.getString("cases.description"), attorney, customer, against, contacts, rs.getDate("contacts.openDate"), rs.getDate("contacts.closeDate"), STATUS.valueOf(rs.getString("cases.status")), PERMISSION.valueOf("cases.permission")));
 }
+ }
 } catch(SQLException e){
     e.printStackTrace();
 }
