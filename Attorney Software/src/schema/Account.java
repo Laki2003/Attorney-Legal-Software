@@ -4,6 +4,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Random;
+
 
 import config.db;
 import interfaces.mySQL;
@@ -13,6 +15,11 @@ String id;
 String username;
 String password;
 
+public Account(String id){
+    this.id = id;
+    this.username = this.ObjectId();
+    this.password = "password";
+}
 public Account(String id, String username, String password){
     this.id = id;
     this.username = username;
@@ -20,18 +27,25 @@ public Account(String id, String username, String password){
 }
 @Override
 public String ObjectId() {
-    return id;
+    byte[] array = new byte[7];
+    new Random().nextBytes(array);
+    return Integer.toHexString(new String(array).hashCode());
 }
 @Override
 public Account save() {
 Connection connection = db.getConnection();
-    String query = "insert into accounts (id, username, password) values(?,?,?) ";
+    String query = "insert into accounts (id, username, password) values(?,?,?) on duplicate key update username=?";
     try{
-        PreparedStatement preparedStatement = connection.prepareStatement(query);
+        PreparedStatement preparedStatement = connection.prepareStatement(query, PreparedStatement.RETURN_GENERATED_KEYS);
         preparedStatement.setString(1, this.getId());
         preparedStatement.setString(2, this.getUserName());
         preparedStatement.setString(3, this.getPassword());
+        preparedStatement.setString(4, this.ObjectId());
         preparedStatement.execute();
+        ResultSet rs = preparedStatement.getGeneratedKeys();
+        if(rs.next()){
+            this.username = rs.getString("username");
+        }
     } catch(SQLException e){
         e.printStackTrace();
     }
@@ -79,6 +93,7 @@ public static Account find(String username){
     }
     return account;
 }
+
 public String getId(){return this.id;}
 public String getUserName(){return this.username;}
 public String getPassword(){return this.password;}

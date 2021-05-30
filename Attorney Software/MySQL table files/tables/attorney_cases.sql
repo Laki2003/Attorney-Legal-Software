@@ -1,8 +1,8 @@
--- MySQL dump 10.13  Distrib 8.0.23, for Win64 (x86_64)
+-- MySQL dump 10.13  Distrib 8.0.24, for Win64 (x86_64)
 --
 -- Host: localhost    Database: attorney
 -- ------------------------------------------------------
--- Server version	8.0.23
+-- Server version	8.0.24
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -16,27 +16,34 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `email`
+-- Table structure for table `cases`
 --
 
-DROP TABLE IF EXISTS `email`;
+DROP TABLE IF EXISTS `cases`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `email` (
-  `id` int NOT NULL,
-  `mail` varchar(45) NOT NULL,
-  `idcontact` int NOT NULL,
+CREATE TABLE `cases` (
+  `id` varchar(200) NOT NULL,
+  `description` varchar(200) NOT NULL,
+  `attorneyId` varchar(200) DEFAULT NULL,
+  `customerId` varchar(200) DEFAULT NULL,
+  `againstId` varchar(200) DEFAULT NULL,
+  `contactsIds` varchar(400) NOT NULL,
+  `openDate` date NOT NULL,
+  `closeDate` date NOT NULL,
+  `status` enum('open','closed','pending') NOT NULL,
+  `permission` enum('everyone','attorney') NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `email`
+-- Dumping data for table `cases`
 --
 
-LOCK TABLES `email` WRITE;
-/*!40000 ALTER TABLE `email` DISABLE KEYS */;
-/*!40000 ALTER TABLE `email` ENABLE KEYS */;
+LOCK TABLES `cases` WRITE;
+/*!40000 ALTER TABLE `cases` DISABLE KEYS */;
+/*!40000 ALTER TABLE `cases` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -48,4 +55,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2021-03-04  9:45:35
+-- Dump completed on 2021-05-29 11:06:21

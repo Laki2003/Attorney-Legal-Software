@@ -12,6 +12,7 @@ import javax.swing.JFormattedTextField;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.border.EmptyBorder;
@@ -24,6 +25,9 @@ import schema.Case.PERMISSION;
 import schema.Case.STATUS;
 import schema.Contacts.Contacts;
 import javax.swing.JTextField;
+import java.awt.Toolkit;
+import java.awt.Color;
+import java.awt.Font;
 
 public class CaseFrame extends JFrame {
 
@@ -31,28 +35,11 @@ public class CaseFrame extends JFrame {
 	private JTextField caseId;
 	
 
-	/**
-	 * Launch the application.
-	 */
-/*	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					CaseFrame frame = new CaseFrame(null);
-					frame.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-	}*/
-
-	/**
-	 * Create the frame.
-	 */
 	public CaseFrame(Case case1) {
 		setVisible(true);
 		setResizable(false);
+		setTitle("Add Case");
+		setIconImage(Toolkit.getDefaultToolkit().getImage(CaseFrame.class.getResource("/GUI/Pictures/icon.jpg")));
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		setBounds(100, 100, 655, 557);
 		contentPane = new JPanel();
@@ -60,6 +47,18 @@ public class CaseFrame extends JFrame {
 		setContentPane(contentPane);
 	getContentPane().setLayout(null);
 		contentPane.setLayout(null);
+		caseId = new JTextField();
+		caseId.setBounds(75, 8, 158, 20);
+		contentPane.add(caseId);
+		caseId.setColumns(10);
+			
+		JLabel dateMismatch = new JLabel("Date mismatch");
+		dateMismatch.setFont(new Font("Tahoma", Font.BOLD, 15));
+		dateMismatch.setForeground(Color.RED);
+		dateMismatch.setBounds(383, 83, 152, 26);
+		contentPane.add(dateMismatch);
+		dateMismatch.setVisible(false);
+		
 		
 		JLabel lblNewLabel = new JLabel("Description:");
 		lblNewLabel.setBounds(10, 55, 68, 14);
@@ -76,6 +75,7 @@ getContentPane().add(description);
 		getContentPane().add(lblNewLabel_1);
 		
 		Vector<String> attorneyVector = new Vector<String>();
+		attorneyVector.add("");
   ArrayList<Attorney> attorneyList = Attorney.find(null, null, "");
   if(attorneyList!=null)
 for(int i = 0;i<attorneyList.size();i++){
@@ -92,7 +92,8 @@ for(int i = 0;i<attorneyList.size();i++){
 		lblNewLabel_2.setBounds(10, 215, 55, 14);
 		getContentPane().add(lblNewLabel_2);
 		Vector<String> customerVector = new Vector<String>();
-		ArrayList<Contacts> customerList = Contacts.find(null, null, "", null, true, null, null, null, null);
+		customerVector.add("");
+		ArrayList<Contacts> customerList = Contacts.find(null, null, "", null, true, null, "", "", "");
 		if(customerList!=null)
 		for(int i = 0;i<customerList.size();i++){
 			customerVector.add(new String(customerList.get(i).getName() + " " + customerList.get(i).getType().toString()));
@@ -105,7 +106,8 @@ for(int i = 0;i<attorneyList.size();i++){
 		lblNewLabel_3.setBounds(10, 275, 46, 14);
 		getContentPane().add(lblNewLabel_3);
 		Vector<String> againstVector = new Vector<String>();
-		ArrayList<Contacts> againstList = Contacts.find(null, null, "", null, false, null, null, null, null);
+		againstVector.add("");
+		ArrayList<Contacts> againstList = Contacts.find(null, null, "", null, false, null, "", "", "");
 		if(againstList!=null)
 		for(int i = 0;i<againstList.size();i++){
 			againstVector.add(new String(againstList.get(i).getName() + " " + againstList.get(i).getType().toString()));
@@ -114,14 +116,15 @@ for(int i = 0;i<attorneyList.size();i++){
 		against.setBounds(75, 271, 162, 22);
 		getContentPane().add(against);
 		Vector<String> contactsVector = new Vector<String>();
-		ArrayList<Contacts> contactsList = Contacts.find(null, null, "", null, null, null, null, null, null);
+		ArrayList<Contacts> contactsList = Contacts.find(null, null, "", null, null, null, "", "", "");
 		if(contactsList!=null)
 		for(int i = 0;i<contactsList.size();i++){
-			contactsVector.add(new String(customerList.get(i).getName() + " " + customerList.get(i).getTitle().toString()));
+			contactsVector.add(new String(contactsList.get(i).getName() + " " + contactsList.get(i).getTitle().toString()));
+			
 		}
 		JList<String> contacts = new JList<>(contactsVector);
 		contacts.setBounds(75, 314, 162, 169);
-		getContentPane().add(contacts);
+		
 		
 		JLabel lblNewLabel_4 = new JLabel("Contacts:");
 		lblNewLabel_4.setBounds(10, 386, 55, 14);
@@ -153,6 +156,7 @@ for(int i = 0;i<attorneyList.size();i++){
 		status.setBounds(386, 211, 121, 22);
 		status.setModel(new DefaultComboBoxModel<>(STATUS.values()));
 		getContentPane().add(status);
+		status.setEnabled(false);
 		
 		JLabel lblNewLabel_8 = new JLabel("Permission:");
 		lblNewLabel_8.setBounds(314, 275, 62, 14);
@@ -163,34 +167,120 @@ for(int i = 0;i<attorneyList.size();i++){
 		permission.setModel(new DefaultComboBoxModel<>(PERMISSION.values()));
 		getContentPane().add(permission);
 		
+		if(case1!=null){
+			setTitle("Update Case");
+			description.setText(case1.getDescription());
+			if(case1.getAttorney()==null){
+				attorney.setSelectedIndex(0);
+			}
+			else{
+			for(int i = 0;i<attorneyList.size();i++){
+				if(attorneyList.get(i).getId().equals(case1.getAttorney().getId())){
+					attorney.setSelectedIndex(i+1);
+				}
+			}
+		}
+		if(case1.getCustomer() == null){
+			customer.setSelectedIndex(0);
+		}else{
+			for(int i = 0;i<customerList.size();i++){
+				if(customerList.get(i).getId().equals(case1.getCustomer().getId())){
+					customer.setSelectedIndex(i+1);
+				}
+			}
+		}
+		if(case1.getAgainst()==null){
+			against.setSelectedIndex(0);
+		}else{
+			for(int i = 0;i<againstList.size();i++){
+				if(againstList.get(i).getId().equals(case1.getAgainst().getId())){
+					against.setSelectedIndex(i+1);
+				}
+			}
+		}
+			openDate.setText(case1.getOpenDate().toString());
+			closeDate.setText(case1.getCloseDate().toString());
+			permission.setSelectedItem(case1.getPermission());
+			status.setSelectedItem(case1.getStatus());
+			
+			Vector<Integer> selectedIndiciesContacts = new Vector<Integer>();
+			for(int i = 0;i<case1.getPersons().size();i++){
+				if(case1.getPersons().get(i)==null){
+					case1.getPersons().remove(i);
+			}
+		}
+			for(int i=0;i<contactsList.size();i++){
+				for(int j = 0; j<case1.getPersons().size(); j++){
+				if(contactsList.get(i).getId().equals(case1.getPersons().get(j).getId())){
+					selectedIndiciesContacts.add(i);
+				}
+				}
+
+			}
+			
+			int[] arr = new int[selectedIndiciesContacts.size()];
+			for(int i = 0;i<selectedIndiciesContacts.size();i++){
+			arr[i] = selectedIndiciesContacts.get(i);
+			}
+			
+			contacts.setSelectedIndices(arr);
+						caseId.setText(case1.getId());
+			caseId.setEditable(false);
+		}
+		getContentPane().add(contacts);
+
+
 		JButton save = new JButton("SAVE");
 		save.setBounds(420, 386, 137, 60);
 		save.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				if(customer.getSelectedIndex() == 0 || against.getSelectedIndex() == 0 || attorney.getSelectedIndex() == 0){
+					JOptionPane.showMessageDialog(contentPane, "You didn't fill all fields!");
+					return;
+				}
+				ArrayList<Contacts> contactss = new ArrayList<Contacts>();
+				int[] indexes =  contacts.getSelectedIndices();
+				for(int i = 0; i<indexes.length;i++){
+					contactss.add(contactsList.get(indexes[i]));
+				}
+				if(Date.valueOf(openDate.getText()).compareTo(Date.valueOf(closeDate.getText()))>0){
+				dateMismatch.setVisible(true);
+					return;
+				}
+				long millis=System.currentTimeMillis();  
+				if(Date.valueOf(openDate.getText()).compareTo(new Date(millis))>0){
+status.setSelectedIndex(2);
+				}
+				else if(Date.valueOf(closeDate.getText()).compareTo(new Date(millis))<0){
+				status.setSelectedIndex(1);
+				}
+				else{
+					status.setSelectedIndex(0);
+				}
 				if(case1==null){
-					ArrayList<Contacts> contacts1 = new ArrayList<Contacts>();
-					int[] indexes =  contacts.getSelectedIndices();
-					for(int i = 0; i<indexes.length;i++){
-						contacts1.add(contactsList.get(indexes[i]));
-					}
 				
-					Case newCase = new Case(caseId.getText(), description.getText(), attorneyList.get(attorney.getSelectedIndex()), customerList.get(customer.getSelectedIndex()), againstList.get(against.getSelectedIndex()),
-					contacts1,Date.valueOf(openDate.getText()),Date.valueOf(closeDate.getText()), STATUS.valueOf(status.getSelectedItem().toString()), PERMISSION.valueOf(permission.getSelectedItem().toString()));
+				
+					Case newCase = new Case(caseId.getText(), description.getText(), attorneyList.get(attorney.getSelectedIndex()-1), customerList.get(customer.getSelectedIndex()-1), againstList.get(against.getSelectedIndex()-1),
+					contactss,Date.valueOf(openDate.getText()),Date.valueOf(closeDate.getText()), STATUS.valueOf(status.getSelectedItem().toString()), PERMISSION.valueOf(permission.getSelectedItem().toString()));
 					newCase.save();
 				}else{
 case1.setDescription(description.getText());
-case1.setAttorney(attorneyList.get(attorney.getSelectedIndex()));
-case1.setCustomer(customerList.get(customer.getSelectedIndex()));
-case1.setAgainst(againstList.get(against.getSelectedIndex()));
+case1.setPersons(contactss);
+case1.setAttorney(attorneyList.get(attorney.getSelectedIndex()-1));
+case1.setCustomer(customerList.get(customer.getSelectedIndex()-1));
+case1.setAgainst(againstList.get(against.getSelectedIndex()-1));
 case1.setOpenDate(Date.valueOf(openDate.getText()));
 case1.setCloseDate(Date.valueOf(closeDate.getText()));
 case1.setStatus(STATUS.valueOf(status.getSelectedItem().toString()));
 case1.setPermission(PERMISSION.valueOf(permission.getSelectedItem().toString()));
 case1.update();
 }
+dispose();
 			}
 		});
 		getContentPane().add(save);
+
+
 		
 		JButton cancel = new JButton("CANCEL");
 		cancel.setBounds(266, 386, 146, 60);
@@ -204,11 +294,7 @@ case1.update();
 		JLabel lblNewLabel_9 = new JLabel("Case ID:");
 		lblNewLabel_9.setBounds(10, 11, 68, 14);
 		contentPane.add(lblNewLabel_9);
-		
-		caseId = new JTextField();
-		caseId.setBounds(75, 8, 158, 20);
-		contentPane.add(caseId);
-		caseId.setColumns(10);
+	
 	
 	}
 }

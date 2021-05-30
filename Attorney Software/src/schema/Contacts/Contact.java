@@ -150,6 +150,7 @@ return result;
    public void setZip(int Zip){this.Zip = Zip;}
    public void setCountry(String country){this.country = country;}
    public void setType(TYPE type){this.type = type;}
+   public void setContactId(String contactId){this.contactId = contactId;}
 
 }
 
@@ -254,6 +255,8 @@ return result;
 
     public void setPhone(String phone){this.phone = phone;}
     public void setType(TYPE type){this.type = type;}
+    public void setContactId(String contactId){this.contactId = contactId;}
+
 }
 
 public static class Email implements mySQL<Email>{
@@ -350,6 +353,8 @@ public String getEmail(){return this.email;}
 public String getContactId(){return this.contactid;}
 
 public void setEmail(String email){this.email = email;}
+public void setContactId(String contactId){this.contactid = contactId;}
+
 }
 
     ArrayList<Email> emails;
@@ -369,4 +374,8 @@ public void setEmail(String email){this.email = email;}
    public ArrayList<Address> getAddresses(){return this.addresses;}
 public ArrayList<Phone> getPhones(){return this.phones;}
 public ArrayList<Email> getEmails(){return this.emails;}
+
+public void setAddresses(ArrayList<Address> addresses){this.addresses = addresses;}
+public void setPhones(ArrayList<Phone> phones){this.phones = phones;}
+public void setEmails(ArrayList<Email> emails){this.emails = emails;}
 }

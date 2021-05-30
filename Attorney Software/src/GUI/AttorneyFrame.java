@@ -3,14 +3,20 @@ package GUI;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
+import javax.swing.text.MaskFormatter;
 
+import schema.Account;
 import schema.Attorney;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 import javax.swing.JFormattedTextField;
 import javax.swing.JTextPane;
-import javax.swing.JList;
 import javax.swing.JButton;
+import java.awt.event.ActionListener;
+import java.text.ParseException;
+import java.awt.event.ActionEvent;
+import java.awt.Toolkit;
 
 public class AttorneyFrame extends JFrame {
 
@@ -19,30 +25,12 @@ public class AttorneyFrame extends JFrame {
 	private JTextField firstName;
 	private JTextField lastName;
 
-	
 
-	/**
-	 * Launch the application.
-	 */
-/*	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					CaseFrame frame = new CaseFrame(null);
-					frame.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-	}*/
-
-	/**
-	 * Create the frame.
-	 */
-	public AttorneyFrame(Attorney attorney) {
+	public AttorneyFrame(Attorney attorney) throws ParseException {
 		setVisible(true);
 		setResizable(false);
+		setIconImage(Toolkit.getDefaultToolkit().getImage(AttorneyFrame.class.getResource("/GUI/Pictures/icon.jpg")));
+		setTitle("Add Attorney");
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		setBounds(100, 100, 655, 557);
 		contentPane = new JPanel();
@@ -82,8 +70,8 @@ public class AttorneyFrame extends JFrame {
 		JLabel lblNewLabel_3 = new JLabel("Year birth:");
 		lblNewLabel_3.setBounds(10, 143, 68, 14);
 		contentPane.add(lblNewLabel_3);
-		
-		JFormattedTextField yearBirth = new JFormattedTextField();
+		MaskFormatter mask = new MaskFormatter("####");
+		JFormattedTextField yearBirth = new JFormattedTextField(mask);
 		yearBirth.setBounds(75, 140, 158, 20);
 		contentPane.add(yearBirth);
 		
@@ -107,15 +95,57 @@ public class AttorneyFrame extends JFrame {
 		lblNewLabel_6.setBounds(351, 197, 63, 14);
 		contentPane.add(lblNewLabel_6);
 		
-		JList languages = new JList();
+		JTextPane languages = new JTextPane();
 		languages.setBounds(424, 197, 158, 159);
 		contentPane.add(languages);
+
+		if(attorney!=null){
+			setTitle("Update Attorney");
+			attorneyId.setText(attorney.getId());
+			firstName.setText(attorney.getFirstName());
+			lastName.setText(attorney.getLastName());
+			education.setText(attorney.getEducation());
+			languages.setText(attorney.getLanguages());
+			workExperience.setText(attorney.getWorkExperience());
+			yearBirth.setText(new String(attorney.getYearBirth().toString()));
+		}
 		
+
+
+
 		JButton cancel = new JButton("CANCEL");
+		cancel.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				dispose();
+			}
+		});
 		cancel.setBounds(266, 386, 146, 60);
 		contentPane.add(cancel);
 		
 		JButton save = new JButton("SAVE");
+		save.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if(attorney == null){
+					
+					Attorney newAttorney = new Attorney(firstName.getText(), lastName.getText(), Integer.parseInt(yearBirth.getText()), education.getText(), workExperience.getText(), languages.getText());
+					newAttorney.save();
+					Account newAccount = new Account(newAttorney.getId());
+					newAccount.save();
+				String password =JOptionPane.showInputDialog(contentPane, "Your username is: " + newAccount.getUserName() + "\n Enter password: ", "Password");
+				newAccount.setPassword(password);
+				newAccount.update();
+				} else{
+attorney.setFirstName(firstName.getText());
+attorney.setLastName(lastName.getText());
+attorney.setYearBirth(Integer.parseInt(yearBirth.getText()));
+attorney.setEducation(education.getText());
+attorney.setWorkExperience(workExperience.getText());
+attorney.setLanguages(languages.getText());
+attorney.update();
+				}
+				dispose();
+			}
+		});
 		save.setBounds(420, 386, 137, 60);
 		contentPane.add(save);
 		

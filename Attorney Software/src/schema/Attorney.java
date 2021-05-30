@@ -55,17 +55,7 @@ public final class Attorney implements mySQL<Attorney> {
  
  
     public Attorney() {
-
-        
- 
-    
-        this.firstName = "lazaar";
-        this.lastName = "Polovsena";
-        this.yearBirth = 1962;
-        this.education = "Pravni fakultet u Novom Sadu\n 1962-1965\n Pravni fakultet u Beogradu\n 1961-1965";
-        this.workExperience = "Pravni fakultet u Novom Sadu\n 1962-1965\n Pravni fakultet u Beogradu\n 1961-1965";
-        this.languages = "engleski, francuski, nemacki";
-        this.id = this.ObjectId();
+this.id = "";
     }
  
 
@@ -164,7 +154,7 @@ return result;
 public String getId(){return this.id;}
 public String getFirstName() {return this.firstName;}
 public String getLastName() {return this.lastName;}
-public int getYearBirth() {return this.yearBirth;}
+public Integer getYearBirth() {return this.yearBirth;}
 public String getEducation() {return this.education;}
 public String getWorkExperience() {return this.workExperience;}
 public String getLanguages() {return this.languages;}

@@ -99,7 +99,7 @@ rs.close();          } catch(SQLException e){
     @Override
     public void delete() {
         Connection connection = db.getConnection();
-        String query = "DELETE tasks WHERE id=?";
+        String query = "DELETE FROM tasks WHERE id=?";
         try{
             PreparedStatement preparedStatement = connection.prepareStatement(query);
             preparedStatement.setString(1, this.getId());
@@ -109,28 +109,13 @@ rs.close();          } catch(SQLException e){
         }
     }
 
-public static ArrayList<Task> findByCaseId(String id){
-    Connection connection = db.getConnection();
-    String query = "SELECT id, taskName, description, priority, status, date, caseId from tasks where caseId = " +id;
-ArrayList<Task> result = new ArrayList<Task>();
-    try{
-    ResultSet rs = connection.prepareStatement(query).executeQuery();
- while(rs.next()){
-     result.add(new Task(rs.getString("id"), rs.getString("taskName"), rs.getString("description"), null, PRIORITY.valueOf(rs.getString("priority")), STATUST.valueOf(rs.getString("status")), rs.getDate("date")));
-      } 
-    }catch(SQLException e){
-        e.printStackTrace();
-          } 
-        return result;
-}
-
-    public static ArrayList<Task> find(JTable table, String search, PRIORITY priority, STATUST status){
+    public static ArrayList<Task> find(JTable table, String id, String search, PRIORITY priority){
 Connection connection = db.getConnection();
-String priorityString = priority==null?"IS NOT NULL":"="+priority.name();
-String statusString = status == null?"IS NOT NULL":"="+status.toString();
-String query = "Select id, taskName, description, caseId, priority, status, date FROM tasks LEFT JOIN cases ON tasks.caseId = cases.id "+ 
-"where(priority "+priorityString + " AND status "+statusString+" ) GROUP BY tasks.id "+
- "HAVING CONCAT_WS(taskName, description, ccase) LIKE '%" + search +"%'";
+String priorityString = priority==null?"IS NOT NULL":"= '"+priority.name() + "'";
+
+String query = "Select tasks.id, taskName, tasks.description, caseId, priority, tasks.status, date FROM tasks LEFT JOIN cases ON tasks.caseId = cases.id "+ 
+"where(priority "+priorityString + " AND tasks.id LIKE '%"+id+"%') GROUP BY tasks.id "+
+ "HAVING CONCAT_WS(taskName, tasks.description, caseId) LIKE '%" + search +"%'";
 ArrayList<Task> tasks = new ArrayList<Task>();
  try{
      ResultSet rs = connection.prepareStatement(query).executeQuery();
@@ -138,7 +123,8 @@ ArrayList<Task> tasks = new ArrayList<Task>();
      table.setModel(DbUtils.resultSetToTableModel(rs));
      else{
      while(rs.next()){
-        // tasks.add(new Task(rs.getString("id"), rs.getString("taskName"), rs.getString("description"), new Case(rs.getString("")), PRIORITY.valueOf(rs.getString("priority")), STATUST.valueOf(rs.getString("status")), ))
+         tasks.add(new Task(rs.getString("tasks.id"), rs.getString("taskName"), rs.getString("tasks.description"), new Case(rs.getString("caseId"), "", null, null, null, null, null, null, null, null),
+          PRIORITY.valueOf(rs.getString("priority")), STATUST.valueOf(rs.getString("tasks.status")), rs.getDate("date")));
 
      }
     }

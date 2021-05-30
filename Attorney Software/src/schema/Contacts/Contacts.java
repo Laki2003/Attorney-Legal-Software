@@ -30,6 +30,9 @@ public class Contacts extends Contact implements mySQL<Contacts>{
        TITLE title;
 Boolean customer;
 TYPEC type;
+public Contacts(){
+   this.id = "";
+}
  public   Contacts(String name, TITLE title, boolean customer, TYPEC type){
     super();
     this.name = name;
@@ -129,8 +132,8 @@ public static Contacts findById(String id){
 Connection connection = db.getConnection();
 String query = "SELECT contacts.id, contacts.name, contacts.title, contacts.customer, contacts.type, GROUP_CONCAT(DISTINCT CONCAT_WS(',', address.id, address.street, address.city, address.state, address.Zip, address.country, address.type) SEPARATOR ';') AS addresses,"+
 " GROUP_CONCAT(DISTINCT CONCAT_WS(',', phone.id, phone.number, phone.type) SEPARATOR ';') AS phones, GROUP_CONCAT(DISTINCT CONCAT_WS(',', email.id, email.mail) SEPARATOR ';') AS emails FROM contacts LEFT JOIN address ON contacts.id = address.idcontact"+
-" LEFT JOIN phone ON contacts.id = phone.idcontact LEFT JOIN email ON contacts.id = email.idcontact WHERE(contacts.id ="
-+id+")";
+" LEFT JOIN phone ON contacts.id = phone.idcontact LEFT JOIN email ON contacts.id = email.idcontact WHERE(contacts.id ='"
++id+"')";
 Contacts person = null;
 
    try{
@@ -170,9 +173,9 @@ return person;
 public static ArrayList<Contacts> find(JTable table, String id, String name, TITLE title, Boolean customer, TYPEC type, String addressString, String phoneString, String emailString){
 Connection connection = db.getConnection();
    String idString = id==null?"IS NOT NULL":"= '"+id.toString() + "'";
-   String titleString = title==null?"IS NOT NULL":"="+title.name();
-   String typeString = title==null?"IS NOT NULL":"="+type.name();
-String customerString = customer == null?"IS NOT NULL":"="+customer.toString();
+   String titleString = title==null?"IS NOT NULL":"='"+title.name()+ "'";
+   String typeString = type==null?"IS NOT NULL":"= '"+type.name()+"'";
+String customerString = customer == null?"IS NOT NULL":"="+customer;
 String query = "SELECT contacts.id, contacts.name, contacts.title, contacts.customer, contacts.type,GROUP_CONCAT(DISTINCT CONCAT_WS(',', address.id, address.street, address.city, address.state, address.Zip, address.country, address.type) SEPARATOR ';') AS addresses,"+
 " GROUP_CONCAT(DISTINCT CONCAT_WS(',', phone.id, phone.number, phone.type) SEPARATOR ';') AS phones, GROUP_CONCAT(DISTINCT CONCAT_WS(',', email.id, email.mail) SEPARATOR ';') AS emails FROM contacts LEFT JOIN address ON contacts.id = address.idcontact"+
 " LEFT JOIN phone ON contacts.id = phone.idcontact LEFT JOIN email ON contacts.id = email.idcontact WHERE(contacts.id "
